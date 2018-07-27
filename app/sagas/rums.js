@@ -54,7 +54,6 @@ function* watchRumsCreateRequest() {
         value
       }
       const response = yield call(rumsCreateCall, payload)
-      console.log("response", response);
       if (response.Success) {
         
         yield put(rumsCreateSuccess(response))
@@ -77,13 +76,13 @@ function rumsUpdateCall(
   }
 ) {
   return new Promise((resolve, reject) => {
-		headers = apiConfig.formHeaders
+    headers = apiConfig.jsonHeaders
 		headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
     fetch(`${apiConfig.url}/api/user/rums/update`, {
       credentials: 'include',
       method: 'post',
       headers: headers,
-      value: value
+      value: JSON.stringify(value)
     })
       .then(response => response.json())
       .then(response => {
@@ -175,7 +174,7 @@ function* watchRumsDeleteRequest() {
       const response = yield call(rumsDeleteCall, payload)
 
       if (response.Success) {
-        yield put(rumsUpdateSuccess(response))
+        yield put(rumsDeleteSuccess(response))
       } else {
         let errorMsg = generateErrorMessage(response)
         yield put(rumsDeleteFailure(errorMsg))

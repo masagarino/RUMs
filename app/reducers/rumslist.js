@@ -5,16 +5,22 @@ const initialState = {
   isFetching: false,
   errorMessage: false,
 	value: false,
-	rumslist
+	rumslist 
 };
 
 export default function rumslist(state = initialState, action) {
   switch(action.type) {
-    case types.RUMSLIST.REQUEST:
+		case types.RUMSLIST.REQUEST:
+			// console.log("=====================================", Object.assign({}, state, {
+			// 	isFetching: true,
+			// 	isGotRumsList: false,
+			// 	errorMessage: false,
+			// 	rumslist: action
+			// }))
       return Object.assign({}, state, {
 				isFetching: true,
 				isGotRumsList: false,
-			  errorMessage: false,
+				errorMessage: false,
       });
     case types.RUMSLIST.SUCCESS:
       return Object.assign({}, state, {

@@ -34,6 +34,7 @@ import { Actions } from 'react-native-router-flux'
 import { translate } from '../i18n'
 import * as loginActions from '../actions/loginActions'
 import * as rumslistActions from '../actions/rumslistActions'
+import updateComponent from '../containers/InteractRumUpdateScreen'
 import CustomFooter from '../components/CustomFooter'
 import * as uiColor from '../constants/uiColor'
 
@@ -263,6 +264,8 @@ class InteractScreen extends Component {
       activePage: 'interact',
       pageTab: 'setup',
       findMeState: 0,
+      rumslist: {},
+      List: [],
       rumslistRequest: false,
       styles: createStyleSheet(props.organizationColor),
       addRumVisible: false
@@ -274,7 +277,11 @@ class InteractScreen extends Component {
     this.renderInfoContact = this.renderInfoContact.bind(this)
   }
 
+  componentWillMount = () => {
+
+  }
   componentDidMount = () => {
+
     const { rumslistActions, auth, register } = this.props
     rumslistActions.rumslistInit()
     rumslistActions.rumslistRequest(auth.access_token, auth.token_type)
@@ -285,6 +292,30 @@ class InteractScreen extends Component {
     ) {
       Actions.push('introduceInteract')
     }
+    // console.log("rumslistActions ==============================",  typeof rumslist);
+
+    const { rumslist } = this.props;
+    var Data = {};
+    var List = [];
+
+
+    Object.getOwnPropertyNames(rumslist).forEach(
+      function (val, idx, array) {
+        //  console.log(val + ' -> ' + typeof rumslist[val].Data);
+        if (rumslist[val].Data) {
+          // console.log(rumslist[val].Data);
+          Data = rumslist[val].Data;
+        }
+      }
+    );
+    Data.map((x, i) => (
+      // console.log("=================", x.Person)
+      List.push(x.Person)
+    ))
+    // console.log("List", List)
+    this.setState({
+      List
+    })
   }
 
   componentWillReceiveProps = nextProps => {
@@ -355,6 +386,12 @@ class InteractScreen extends Component {
     this.setState({
       addRumVisible: visible
     })
+  }
+
+  updateList = () => {
+    <updateComponent data={"this is ID"} />
+    this.contactNew(false)
+    Actions.push('Updaterum')
   }
 
   addRumManuel = () => {
@@ -473,18 +510,25 @@ class InteractScreen extends Component {
   }
 
   renderContact = locale => {
-    const { styles } = this.state
+    const { styles, List } = this.state;
+    var row
+    // if (List != undefined) {
+    //   // console.log("het here!!!!!!!!!!!", Object.entries(List)[0]);
+    //   row = Object.entries(List).forEach(([key, value]) =>
+
+
+    // }
     return (
       <View style={styles.contact}>
         <Text style={styles.contactHeader}>
           {translate('CONTACTS', locale)}
         </Text>
-        {[...Array(10)].map((x, i) => (
+        {List.map((x, i) => (
           <Button
             transparent
             style={styles.contactButton}
             key={i}
-            onPress={() => this.contactNew(true)}
+            onPress={() => this.updateList()}
           >
             <Thumbnail
               square
@@ -493,16 +537,19 @@ class InteractScreen extends Component {
             />
             <View style={styles.contactButtonView}>
               <Text style={styles.contactButtonText}>
-                {translate('Add New RUM', locale)}
+                {
+                  x.PersonID
+                }
               </Text>
             </View>
           </Button>
-        ))}
+        ))
+        }
 
         <Modal
           visible={this.state.addRumVisible}
           transparent={true}
-          onReqestClose={()=>{this.addRumManuel(false)}}
+          onReqestClose={() => { this.addRumManuel(false) }}
         >
           <View
             style={{
@@ -638,12 +685,13 @@ class InteractScreen extends Component {
 }
 
 function mapStateToProps(state) {
-  const { counter, auth, data, register, organization } = state
+  const { counter, auth, data, register, organization, rumslist } = state
 
   return {
     counter,
     auth,
     data,
+    rumslist,
     register,
     organizationColor: organization.developerJson
   }

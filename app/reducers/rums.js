@@ -10,12 +10,6 @@ const initialState = {
 export default function rums(state = initialState, action) {
   switch(action.type) {
     case types.RUMS_CREATE.REQUEST:
-      console.log("oh yeah!!", Object.assign({}, state, {
-        isFetching: true,
-        done: false,
-        errorMessage: false,
-        value: action.value
-      }) );
       return Object.assign({}, state, {
 				isFetching: true,
 				done: false,
