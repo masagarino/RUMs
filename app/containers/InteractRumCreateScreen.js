@@ -37,16 +37,18 @@ import Spacer from '../components/Spacer'
 import defaultValues from '../constants/defaultValues'
 import * as uiColor from '../constants/uiColor'
 
+import * as rumsActions from '../actions/rumsActions';
+
 function createStyleSheet(organizationColor) {
 	return StyleSheet.create({
 		opacity: {
 			opacity: 0.8
 		},
-    backText: {
-      top: -1,
-      fontSize: 17,
-      color: '#F9F9F9',
-    },
+		backText: {
+			top: -1,
+			fontSize: 17,
+			color: '#F9F9F9',
+		},
 		content: {
 			backgroundColor: '#FFF'
 		},
@@ -63,45 +65,45 @@ function createStyleSheet(organizationColor) {
 			fontSize: 16,
 			textAlign: 'center'
 		},
-    userInfoRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      paddingTop: 3,
-      paddingLeft: 11,
-      paddingRight: 11,
-      paddingBottom: 3,
-    },
-    userInfoFieldsView: {
-      paddingLeft: 5,
-      paddingRight: 5,
-      width: '100%'
-    },
-    userInfoFieldInput: {
-      paddingTop: 5,
-      paddingBottom: 5,
-      fontSize: 13,
-      borderWidth: 1,
-      borderColor: uiColor.getPrimaryColor(organizationColor)
-    },
-    userInfoFieldTitleView: {
-      padding: 10,
-      height: 40,
-    },
-    userInfoFieldTitle: {
-      // height: 30,
-      fontSize: 13,
-      color: '#808080',
-      flex: 1,
-      width: 80,
-      height: 40,
-    },
-    userInfoValueView: {
-      flex: 5,
-      paddingLeft: 15,
-      height: 30
-    },
+		userInfoRow: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			alignSelf: 'flex-start',
+			paddingTop: 3,
+			paddingLeft: 11,
+			paddingRight: 11,
+			paddingBottom: 3,
+		},
+		userInfoFieldsView: {
+			paddingLeft: 5,
+			paddingRight: 5,
+			width: '100%'
+		},
+		userInfoFieldInput: {
+			paddingTop: 5,
+			paddingBottom: 5,
+			fontSize: 13,
+			borderWidth: 1,
+			borderColor: uiColor.getPrimaryColor(organizationColor)
+		},
+		userInfoFieldTitleView: {
+			padding: 10,
+			height: 40,
+		},
+		userInfoFieldTitle: {
+			// height: 30,
+			fontSize: 13,
+			color: '#808080',
+			flex: 1,
+			width: 80,
+			height: 40,
+		},
+		userInfoValueView: {
+			flex: 5,
+			paddingLeft: 15,
+			height: 30
+		},
 		button: {
 			backgroundColor: '#7E888D'
 		},
@@ -144,18 +146,19 @@ class InteractRumCreateScreen extends React.Component {
 		super(props)
 		this.state = {
 			styles: createStyleSheet(props.organizationColor),
-			firstName: '',
-			email: '',
-			phone: '',
-			city: '',
-			state: '',
-			lastName: '',
-			industry: '',
-			preferredName: '',
-			company: '',
-			jobTitle: '',
-			linkedInUrl: '',
-
+			person: {
+				firstName: '',
+				email: '',
+				phone: '',
+				city: '',
+				state: '',
+				lastName: '',
+				industry: '',
+				preferredName: '',
+				company: '',
+				jobTitle: '',
+				linkedInUrl: '',
+			},
 			saveButtonValidate: false,
 			errorMessages: [],
 			errorShow: false,
@@ -163,11 +166,35 @@ class InteractRumCreateScreen extends React.Component {
 		this.handleChange = this.handleChange.bind(this)
 	}
 
+	handleChange = (name, val) => {
+		let person = this.state.person
+		person[name] = val
+		console.log("state", this.state, ">>>", person)
+		this.setState(
+			{
+				...this.state,
+				person: person
+			},
+			() => {
+				this.checkValidataion()
+			}
+		)
+	}
+
 	handleSave = () => {
+		this.setState({
+			showSuccessAlert: false,
+			saveRequest: false
+		})
 		console.log(this.state.saveButtonValidate)
 		const { saveButtonValidate } = this.state
 		if (saveButtonValidate) {
-			alert('filled')
+			// console.log('filled', person, this.props.auth.access_token,"============================", this.props.auth.token_type);
+			this.props.rumsActions.rumsCreateRequest(
+				this.props.auth.access_token,
+				this.props.auth.token_type,
+				this.state.person
+			)
 		} else {
 			this.setState({ errorShow: true })
 		}
@@ -185,65 +212,55 @@ class InteractRumCreateScreen extends React.Component {
 
 	checkValidataion = () => {
 		const {
-			firstName,
-			preferredName,
-			lastName,
-			jobTitle,
-			company,
-			city,
-			state,
-			industry,
-			email,
-			phone,
-			linkedInUrl
+			person
 		} = this.state
 		const locale = 'en'
 		let result = [],
 			validate = true
-		if (firstName == '') {
+		if (person.firstName == '') {
 			result[0] = translate('Input first name', locale)
 			validate = false
 		}
-		if (preferredName == '') {
+		if (person.preferredName == '') {
 			result[1] = translate('Input preferred name', locale)
 			validate = false
 		}
-		if (lastName == '') {
+		if (person.lastName == '') {
 			result[2] = translate('Input last name', locale)
 			validate = false
 		}
-		if (jobTitle == '') {
+		if (person.jobTitle == '') {
 			result[3] = translate('Input job title', locale)
 			validate = false
 		}
-		if (company == '') {
+		if (person.company == '') {
 			result[4] = translate('Input company', locale)
 			validate = false
 		}
-		if (city == '') {
+		if (person.city == '') {
 			result[5] = translate('Input city', locale)
 			validate = false
 		}
-		if (state == '') {
+		if (person.state == '') {
 			result[6] = translate('Input state', locale)
 			validate = false
 		}
-		if (industry == '') {
+		if (person.industry == '') {
 			result[7] = translate('Input industry', locale)
 			validate = false
 		}
-		if (email == '') {
+		if (person.email == '') {
 			result[8] = translate('Input email address', locale)
 			validate = false
-		} else if (!this.validateEmail(email)) {
+		} else if (!this.validateEmail(person.email)) {
 			result[8] = translate('Input validate email', locale)
 			validate = false
 		}
-		if (!this.validateNumber(phone)) {
+		if (!this.validateNumber(person.phone)) {
 			result[9] = translate('Input the correct number', locale)
 			validate = false
 		}
-		if (linkedInUrl == '') {
+		if (person.linkedInUrl == '') {
 			result[10] = translate('Input Linkedin Url', locale)
 			validate = false
 		}
@@ -256,17 +273,17 @@ class InteractRumCreateScreen extends React.Component {
 		return validate
 	}
 
-	handleChange = (name, val) => {
-		this.setState(
-			{
-				...this.state,
-				[name]: val
-			},
-			() => {
-				this.checkValidataion()
-			}
-		)
-	}
+	// handleChange = (name, val) => {
+	// 	this.setState(
+	// 		{
+	// 			...this.state,
+	// 			[name]: val
+	// 		},
+	// 		() => {
+	// 			this.checkValidataion()
+	// 		}
+	// 	)
+	// }
 
 	componentDidMount = () => {
 		this.checkValidataion()
@@ -303,213 +320,213 @@ class InteractRumCreateScreen extends React.Component {
 						</Title>
 					</Body>
 					<Right style={{ flex: 2 }}>
-            <Button transparent onPress={this.handleSave}>
-              <Text style={styles.backText}>{translate('Save', locale)}</Text>
-            </Button>
+						<Button transparent onPress={this.handleSave}>
+							<Text style={styles.backText}>{translate('Save', locale)}</Text>
+						</Button>
 					</Right>
-  
-				</Header>	
+
+				</Header>
 				<Content
 					style={styles.content}
 				>
 					<View style={styles.userInfoFieldsView}>
 						<Spacer size={20} />
 						<Grid>
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('First Name', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('First Name', locale)}
-	                  onChangeText={v => this.handleChange('firstName', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('First Name', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('First Name', locale)}
+										onChangeText={v => this.handleChange('firstName', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[0] && (
 									<Messages message={errorMessages[0]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('Preferred Name', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('Preferred Name', locale)}
-	                  onChangeText={v => this.handleChange('preferredName', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('Preferred Name', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('Preferred Name', locale)}
+										onChangeText={v => this.handleChange('preferredName', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[1] && (
 									<Messages message={errorMessages[1]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('Last Name', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('Last Name', locale)}
-	                  onChangeText={v => this.handleChange('lastName', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('Last Name', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('Last Name', locale)}
+										onChangeText={v => this.handleChange('lastName', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[2] && (
 									<Messages message={errorMessages[2]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('Job Title', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('Job Title', locale)}
-	                  onChangeText={v => this.handleChange('jobTitle', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('Job Title', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('Job Title', locale)}
+										onChangeText={v => this.handleChange('jobTitle', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[3] && (
 									<Messages message={errorMessages[3]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('Company', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('Company', locale)}
-	                  onChangeText={v => this.handleChange('company', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('Company', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('Company', locale)}
+										onChangeText={v => this.handleChange('company', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[4] && (
 									<Messages message={errorMessages[4]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('City', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('City', locale)}
-	                  onChangeText={v => this.handleChange('city', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('City', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('City', locale)}
+										onChangeText={v => this.handleChange('city', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[5] && (
 									<Messages message={errorMessages[5]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('State', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('State', locale)}
-	                  onChangeText={v => this.handleChange('state', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('State', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('State', locale)}
+										onChangeText={v => this.handleChange('state', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[6] && (
 									<Messages message={errorMessages[6]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('Industry', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('Industry', locale)}
-	                  onChangeText={v => this.handleChange('industry', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('Industry', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('Industry', locale)}
+										onChangeText={v => this.handleChange('industry', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[7] && (
 									<Messages message={errorMessages[7]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('Email', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('Email', locale)}
-	                  onChangeText={v => this.handleChange('email', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('Email', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('Email', locale)}
+										onChangeText={v => this.handleChange('email', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[8] && (
 									<Messages message={errorMessages[8]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('Phone', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('Phone', locale)}
-	                  onChangeText={v => this.handleChange('phone', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('Phone', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('Phone', locale)}
+										onChangeText={v => this.handleChange('phone', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[9] && (
 									<Messages message={errorMessages[9]} />
 								)}
-	            <Row style={styles.userInfoRow} size={0}>
-	              <View style={styles.userInfoFieldTitleView}>
-	                <Text style={styles.userInfoFieldTitle}>
-	                  {translate('LinkedInUrl', locale)}
-	                </Text>
-	              </View>
-	              <View style={styles.userInfoValueView} >
-	                <Input
-	                  style={styles.userInfoFieldInput}
-	                  placeholder={translate('LinkedInUrl', locale)}
-	                  onChangeText={v => this.handleChange('linkedInUrl', v)}
-	                />
-	              </View>
-	            </Row>
-	            {errorShow &&
+							<Row style={styles.userInfoRow} size={0}>
+								<View style={styles.userInfoFieldTitleView}>
+									<Text style={styles.userInfoFieldTitle}>
+										{translate('LinkedInUrl', locale)}
+									</Text>
+								</View>
+								<View style={styles.userInfoValueView} >
+									<Input
+										style={styles.userInfoFieldInput}
+										placeholder={translate('LinkedInUrl', locale)}
+										onChangeText={v => this.handleChange('linkedInUrl', v)}
+									/>
+								</View>
+							</Row>
+							{errorShow &&
 								errorMessages[10] && (
 									<Messages message={errorMessages[10]} />
 								)}
@@ -534,7 +551,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
 	return {
-		
+		rumsActions: bindActionCreators(rumsActions, dispatch)
 	}
 }
 

@@ -13,7 +13,8 @@ export default combineReducers({
   counter,
   auth,
 	register,
-	organization,
+  organization,
+  rums,
 	rumslist,
 	user,
   // userUpdate

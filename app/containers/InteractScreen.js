@@ -167,7 +167,8 @@ function createStyleSheet(organizationColor) {
       borderRadius: 7
     },
     alertTitle: {
-      fontSize: 16
+      fontSize: 16,
+      top: -15
     },
     buttonStyle: {
       color: '#0076FF',
@@ -177,7 +178,8 @@ function createStyleSheet(organizationColor) {
       width: '50%',
       justifyContent: 'center',
       alignItems: 'center',
-      fontWeight: 'bold'
+      fontWeight: 'bold',
+      height: 50
     },
     viewMentor: {
       paddingLeft: 8,
@@ -355,6 +357,11 @@ class InteractScreen extends Component {
     })
   }
 
+  addRumManuel = () => {
+    this.contactNew(false)
+    Actions.push('createrum')
+  }
+
   renderView = locale => {
     let { pageTab } = this.state
     if (pageTab == 'setup') return this.renderSetupView(locale)
@@ -495,10 +502,7 @@ class InteractScreen extends Component {
         <Modal
           visible={this.state.addRumVisible}
           transparent={true}
-          animationType={'fade'}
-          onRequestClose={() => {
-            this.contactNew(false)
-          }}
+          onReqestClose={()=>{this.addRumManuel(false)}}
         >
           <View
             style={{
@@ -508,10 +512,10 @@ class InteractScreen extends Component {
             }}
           >
             <View style={styles.alertMainView}>
-              
-                <Text style={styles.alertTitle}>
-                  {translate('Add New Rum', locale)}
-                </Text>
+
+              <Text style={styles.alertTitle}>
+                {translate('Add New Rum', locale)}
+              </Text>
               <View>
                 <Text style={styles.buttonStyle}>
                   {translate('Add RUM from Organization', locale)}
@@ -523,7 +527,7 @@ class InteractScreen extends Component {
                 </Text>
               </View>
               <View>
-                <Text style={styles.buttonStyle}>
+                <Text style={styles.buttonStyle} onPress={this.addRumManuel}>
                   {translate('Add RUM Manually', locale)}
                 </Text>
               </View>
@@ -657,3 +661,4 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(InteractScreen)
+

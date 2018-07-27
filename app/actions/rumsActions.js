@@ -1,6 +1,8 @@
 import * as types from './actionTypes'
 import { Actions } from 'react-native-router-flux'
 
+
+//create 
 export function rumsCreateRequest(access_token, token_type, value) {
   return {
     type: types.RUMS_CREATE.REQUEST,

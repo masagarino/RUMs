@@ -16,16 +16,17 @@ import { generateErrorMessage } from './utils'
 
 function rumsCreateCall({access_token, token_type, value}) {
   return new Promise((resolve, reject) => {
-		headers = apiConfig.formHeaders
+    headers = apiConfig.jsonHeaders
 		headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
     fetch(`${apiConfig.url}/api/user/rums/create`, {
       credentials: 'include',
       method: 'post',
       headers: headers,
-      body: value
+      body: JSON.stringify({ Person: value })
     })
       .then(response => response.json())
       .then(response => {
+        console.log("response", response);
         if (response.error) {
           reject({ status: response.error_description || response.error })
         } else {
@@ -53,14 +54,16 @@ function* watchRumsCreateRequest() {
         value
       }
       const response = yield call(rumsCreateCall, payload)
+      console.log("response", response);
       if (response.Success) {
-        yield put(accountUserInfoSuccess(response))
+        
+        yield put(rumsCreateSuccess(response))
       } else {
         let errorMsg = generateErrorMessage(response)
-        yield put(accountUserInfoFailure(errorMsg))
+        yield put(rumsCreateFailure(errorMsg))
       }
     } catch (err) {
-      yield put(accountUserInfoFailure(err.status))
+      yield put(rumsCreateFailure(err.status))
     }
   }
 }
