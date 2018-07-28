@@ -14,15 +14,15 @@ import {
 } from '../actions/rumsActions'
 import { generateErrorMessage } from './utils'
 
-function rumsCreateCall({access_token, token_type, value}) {
+function rumsCreateCall({ access_token, token_type, value }) {
   return new Promise((resolve, reject) => {
     headers = apiConfig.jsonHeaders
-		headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
+    headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
     fetch(`${apiConfig.url}/api/user/rums/create`, {
       credentials: 'include',
       method: 'post',
       headers: headers,
-      body: JSON.stringify({ Person: value })
+      body: JSON.stringify({ "IsActive": true, Person: value, "DisplayOrder": 1 })
     })
       .then(response => response.json())
       .then(response => {
@@ -43,19 +43,19 @@ function* watchRumsCreateRequest() {
   while (true) {
     const {
       access_token,
-			token_type,
+      token_type,
       value
     } = yield take(types.RUMS_CREATE.REQUEST)
 
     try {
       const payload = {
-				access_token,
-				token_type,
+        access_token,
+        token_type,
         value
       }
       const response = yield call(rumsCreateCall, payload)
       if (response.Success) {
-        
+
         yield put(rumsCreateSuccess(response))
       } else {
         let errorMsg = generateErrorMessage(response)
@@ -71,21 +71,29 @@ function* watchRumsCreateRequest() {
 function rumsUpdateCall(
   {
     access_token,
-  	token_type,
-    value
+    token_type,
+    value,
+    ID
   }
 ) {
+
+  console.log(" <-request update", JSON.stringify({ RumID: ID, Person: value }))
   return new Promise((resolve, reject) => {
     headers = apiConfig.jsonHeaders
-		headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
+    headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
     fetch(`${apiConfig.url}/api/user/rums/update`, {
       credentials: 'include',
       method: 'post',
       headers: headers,
-      value: JSON.stringify(value)
+      body: JSON.stringify({
+        "IsActive": true,
+        "DisplayOrder": 2,
+        RumID: ID,
+        Person: value })
     })
       .then(response => response.json())
       .then(response => {
+        console.log("response", response);
         if (response.error) {
           reject({ status: response.error_description || response.error })
         } else {
@@ -102,15 +110,17 @@ function* watchRumsUpdateRequest() {
   while (true) {
     const {
       access_token,
-    	token_type,
-      value
+      token_type,
+      value,
+      ID
     } = yield take(types.RUMS_UPDATE.REQUEST)
 
     try {
       const payload = {
         access_token,
-      	token_type,
-        value
+        token_type,
+        value,
+        ID
       }
       const response = yield call(rumsUpdateCall, payload)
 
@@ -130,18 +140,24 @@ function* watchRumsUpdateRequest() {
 function rumsDeleteCall(
   {
     access_token,
-  	token_type,
-    value
+    token_type,
+    value,
+    ID
   }
 ) {
   return new Promise((resolve, reject) => {
-		headers = apiConfig.formHeaders
-		headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
+    headers = apiConfig.jsonHeaders
+    headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
     fetch(`${apiConfig.url}/api/user/rums/delete`, {
       credentials: 'include',
       method: 'post',
       headers: headers,
-      body: value
+      body: JSON.stringify({
+        "IsActive": false,
+        "DisplayOrder": -1,
+        RumID: ID,
+        Person: value
+      })
     })
       .then(response => response.json())
       .then(response => {
@@ -161,15 +177,17 @@ function* watchRumsDeleteRequest() {
   while (true) {
     const {
       access_token,
-    	token_type,
-      value
+      token_type,
+      value,
+      ID
     } = yield take(types.RUMS_DELETE.REQUEST)
 
     try {
       const payload = {
         access_token,
-      	token_type,
-        value
+        token_type,
+        value,
+        ID
       }
       const response = yield call(rumsDeleteCall, payload)
 
@@ -189,13 +207,13 @@ function* watchRumsDeleteRequest() {
 function rumsSortCall(
   {
     access_token,
-  	token_type,
+    token_type,
     value
   }
 ) {
   return new Promise((resolve, reject) => {
-		headers = apiConfig.formHeaders
-		headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
+    headers = apiConfig.formHeaders
+    headers[apiConfig.authenticationHeaderName] = `${token_type} ${access_token}`
     fetch(`${apiConfig.url}/api/user/rums/sort`, {
       credentials: 'include',
       method: 'post',
@@ -220,14 +238,14 @@ function* watchRumsSortRequest() {
   while (true) {
     const {
       access_token,
-    	token_type,
+      token_type,
       value
     } = yield take(types.RUMS_SORT.REQUEST)
 
     try {
       const payload = {
         access_token,
-      	token_type,
+        token_type,
         value
       }
       const response = yield call(rumsSortCall, payload)

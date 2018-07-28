@@ -395,7 +395,6 @@ class IntroduceReadyToBeginScreen extends Component {
 					transparent={true}
 					animationType={'fade'}
 					onRequestClose={() => {
-            console.log('handleCloseReadyModal', this.handleCloseReadyModal());
 						this.handleCloseReadyModal()
 					}}
 				>

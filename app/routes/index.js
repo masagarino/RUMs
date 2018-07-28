@@ -22,6 +22,7 @@ import HomeScreen from '../containers/HomeScreen'
 import InteractScreen from '../containers/InteractScreen'
 import InteractRumScreen from '../containers/InteractRumScreen'
 import InteractRumCreateScreen from '../containers/InteractRumCreateScreen'
+import InteractRumUpdateScreen from '../containers/InteractRumUpdateScreen'
 import ContactInfoScreen from '../containers/ContactInfoScreen'
 import LocaleScreen from '../containers/LocaleScreen'
 import SelfScreen from '../containers/SelfScreen'
@@ -138,6 +139,13 @@ class UpperNetwork extends Component {
 								icon={TabIcon}
 								hideNavBar={true}
 								component={InteractRumCreateScreen}
+							/>
+							<Scene
+								key="Updaterum"
+								title="Interact"
+								icon={TabIcon}
+								hideNavBar={true}
+								component={InteractRumUpdateScreen}
 							/>
 							<Scene
 								key="self"

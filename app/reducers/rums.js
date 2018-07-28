@@ -4,7 +4,8 @@ const initialState = {
 	done: false,
   isFetching: false,
   errorMessage: false,
-	value: false,
+  value: false,
+  rums
 };
 
 export default function rums(state = initialState, action) {
@@ -41,7 +42,8 @@ export default function rums(state = initialState, action) {
         isFetching: true,
         done: false,
         errorMessage: false,
-        value: action.value
+        value: action.value,
+        RumID: action.ID,
       });
     case types.RUMS_UPDATE.SUCCESS:
       return Object.assign({}, state, {
@@ -61,6 +63,7 @@ export default function rums(state = initialState, action) {
         isFetching: false,
         done: false,
         errorMessage: false,
+        value: action.value
       });
     // RUMS delete
     case types.RUMS_DELETE.REQUEST:
@@ -68,7 +71,8 @@ export default function rums(state = initialState, action) {
         isFetching: true,
         done: false,
         errorMessage: false,
-        value: action.value
+        value: action.value,
+        RumID: action.ID,
       });
     case types.RUMS_UPDATE.SUCCESS:
       return Object.assign({}, state, {

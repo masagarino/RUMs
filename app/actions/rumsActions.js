@@ -6,8 +6,8 @@ import { Actions } from 'react-native-router-flux'
 export function rumsCreateRequest(access_token, token_type, value) {
   return {
     type: types.RUMS_CREATE.REQUEST,
-		access_token,
-		token_type,
+    access_token,
+    token_type,
     value
   }
 }
@@ -32,18 +32,20 @@ export function rumsCreateFailure(err) {
   }
 }
 
-export function rumsUpdateRequest(access_token, token_type, value) {
+export function rumsUpdateRequest(access_token, token_type, value, ID) {
   return {
     type: types.RUMS_UPDATE.REQUEST,
-		access_token,
-		token_type,
-    value
+    access_token,
+    token_type,
+    value,
+    ID
   }
 }
 
-export function rumsUpdateInit() {
+export function rumsUpdateInit(value) {
   return {
-    type: types.RUMS_UPDATE.INIT
+    type: types.RUMS_UPDATE.INIT,
+    value
   }
 }
 
@@ -61,18 +63,20 @@ export function rumsUpdateFailure(err) {
   }
 }
 
-export function rumsDeleteRequest(access_token, token_type, value) {
+export function rumsDeleteRequest(access_token, token_type, value, ID) {
   return {
     type: types.RUMS_DELETE.REQUEST,
-		access_token,
-		token_type,
-    value
+    access_token,
+    token_type,
+    value, 
+    ID
   }
 }
 
-export function rumsDeleteInit() {
+export function rumsDeleteInit(value) {
   return {
-    type: types.RUMS_DELETE.INIT
+    type: types.RUMS_DELETE.INIT,
+    value
   }
 }
 
@@ -93,8 +97,8 @@ export function rumsDeleteFailure(err) {
 export function rumsSortRequest(access_token, token_type, value) {
   return {
     type: types.RUMS_SORT.REQUEST,
-		access_token,
-		token_type,
+    access_token,
+    token_type,
     value
   }
 }

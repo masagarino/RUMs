@@ -34,7 +34,7 @@ import { Actions } from 'react-native-router-flux'
 import { translate } from '../i18n'
 import * as loginActions from '../actions/loginActions'
 import * as rumslistActions from '../actions/rumslistActions'
-import updateComponent from '../containers/InteractRumUpdateScreen'
+import * as rumsActions from '../actions/rumsActions'
 import CustomFooter from '../components/CustomFooter'
 import * as uiColor from '../constants/uiColor'
 
@@ -282,7 +282,7 @@ class InteractScreen extends Component {
   }
   componentDidMount = () => {
 
-    const { rumslistActions, auth, register } = this.props
+    const { rumslistActions, auth, register, rumsActions } = this.props
     rumslistActions.rumslistInit()
     rumslistActions.rumslistRequest(auth.access_token, auth.token_type)
     if (
@@ -292,7 +292,7 @@ class InteractScreen extends Component {
     ) {
       Actions.push('introduceInteract')
     }
-    // console.log("rumslistActions ==============================",  typeof rumslist);
+    // console.log("rumsActions ==============================", rumsActions.rumsUpdateInit());
 
     const { rumslist } = this.props;
     var Data = {};
@@ -301,7 +301,7 @@ class InteractScreen extends Component {
 
     Object.getOwnPropertyNames(rumslist).forEach(
       function (val, idx, array) {
-        //  console.log(val + ' -> ' + typeof rumslist[val].Data);
+        // console.log(val + ' -> ' + JSON.stringify(rumslist[val].Data));
         if (rumslist[val].Data) {
           // console.log(rumslist[val].Data);
           Data = rumslist[val].Data;
@@ -309,10 +309,10 @@ class InteractScreen extends Component {
       }
     );
     Data.map((x, i) => (
-      // console.log("=================", x.Person)
-      List.push(x.Person)
+      //  console.log("=================", x.RumID)
+      List.push({ RumID: x.RumID, Person: x.Person })
     ))
-    // console.log("List", List)
+    // console.log("List----------------->", List[Person])
     this.setState({
       List
     })
@@ -388,9 +388,10 @@ class InteractScreen extends Component {
     })
   }
 
-  updateList = () => {
-    <updateComponent data={"this is ID"} />
-    this.contactNew(false)
+  updateList = (data) => {
+    const { rumsActions } = this.props;
+    rumsActions.rumsUpdateInit(data)
+    // this.contactNew(false)
     Actions.push('Updaterum')
   }
 
@@ -511,13 +512,10 @@ class InteractScreen extends Component {
 
   renderContact = locale => {
     const { styles, List } = this.state;
-    var row
-    // if (List != undefined) {
-    //   // console.log("het here!!!!!!!!!!!", Object.entries(List)[0]);
-    //   row = Object.entries(List).forEach(([key, value]) =>
+    // List.map((x, i) => (
+    //   console.log(" =============== >",x["Person"].LastName)
+    // ))
 
-
-    // }
     return (
       <View style={styles.contact}>
         <Text style={styles.contactHeader}>
@@ -528,7 +526,7 @@ class InteractScreen extends Component {
             transparent
             style={styles.contactButton}
             key={i}
-            onPress={() => this.updateList()}
+            onPress={() => { this.updateList(x) }}
           >
             <Thumbnail
               square
@@ -538,13 +536,29 @@ class InteractScreen extends Component {
             <View style={styles.contactButtonView}>
               <Text style={styles.contactButtonText}>
                 {
-                  x.PersonID
+                   x["Person"].FirstName + " " + x["Person"].LastName
                 }
               </Text>
             </View>
           </Button>
         ))
         }
+        <Button
+          transparent
+          style={styles.contactButton}
+          onPress={() => this.contactNew(true)}
+        >
+          <Thumbnail
+            square
+            style={styles.contactButtonPlus}
+            source={require('../images/contact_button.jpg')}
+          />
+          <View style={styles.contactButtonView}>
+            <Text style={styles.contactButtonText}>
+              {translate('Add New Rum', locale)}
+            </Text>
+          </View>
+        </Button>
 
         <Modal
           visible={this.state.addRumVisible}
@@ -701,7 +715,8 @@ function mapDispatchToProps(dispatch) {
   return {
     actions: { increment, decrement },
     loginActions: bindActionCreators(loginActions, dispatch),
-    rumslistActions: bindActionCreators(rumslistActions, dispatch)
+    rumslistActions: bindActionCreators(rumslistActions, dispatch),
+    rumsActions: bindActionCreators(rumsActions, dispatch)
   }
 }
 

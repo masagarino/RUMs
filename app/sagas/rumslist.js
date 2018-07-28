@@ -2,7 +2,7 @@ import React from 'react'
 import { take, put, call, fork, select } from 'redux-saga/effects'
 import * as types from '../actions/actionTypes'
 import apiConfig from '../constants/api'
-import { rumslistSuccess, rumslistFailure, rumslistRequest } from '../actions/rumslistActions'
+import { rumslistSuccess, rumslistFailure } from '../actions/rumslistActions'
 
 function rumslistCall({access_token, token_type}) {
   return new Promise((resolve, reject) => {
@@ -43,7 +43,6 @@ function* watchRumslistRequest() {
 
       if (response.Success) {
         // console.log('SAGA RUMSLIST SUCCESS: ', response)
-        yield put(rumslistRequest(response))
         yield put(rumslistSuccess(response))
       } else {
         let errorMsg =

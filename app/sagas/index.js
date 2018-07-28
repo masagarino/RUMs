@@ -5,8 +5,8 @@ import login from './login';
 import loginFromRegistration from './loginFromRegistration';
 import register from './register';
 import organization from './organization';
-import rums from './rums';
 import rumslist from './rumslist';
+import rums from './rums';
 import user from './user';
 import account from './account';
 
@@ -17,8 +17,8 @@ export default function* root() {
 	yield fork(loginFromRegistration);
 	yield fork(register);
 	yield fork(organization);
-	yield fork(rums);
 	yield fork(rumslist);
+	yield fork(rums);
 	yield fork(user);
   yield fork(account);
 }
