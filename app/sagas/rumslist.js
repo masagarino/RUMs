@@ -50,7 +50,7 @@ function* watchRumslistRequest() {
           response.ValidationErrors == undefined
             ? 'Unexpected error!'
             : response.ValidationErrors[0]
-        console.log('SAGA RUMSLIST UNEXPECTED ERR: ', response)
+        //console.log('SAGA RUMSLIST UNEXPECTED ERR: ', response)
         if (
           response.ValidationErrors != null &&
           response.ValidationErrors != undefined

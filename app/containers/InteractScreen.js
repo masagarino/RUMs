@@ -290,10 +290,30 @@ function createStyleSheet(organizationColor) {
   })
 }
 
+function getData(value) {
+
+  var Dataprops = [];
+  var Listprops = [];
+
+  Object.getOwnPropertyNames(value).forEach(
+    function (val, idx, array) {
+
+      if (value[val] === undefined || typeof value[val] == "object") {
+        Dataprops.push(value[val]["Person"]);
+      }
+    }
+  );
+  Dataprops.map((x, i) => Listprops.push({ Person: x }))
+  return Listprops
+}
+
 class InteractScreen extends Component {
   constructor(props) {
     super(props)
 
+    this.dataDrag = getData(props.rumslist.value.Data);
+   // this.dataDrag = [{ "a": 1, 'b': 2, 'c': 3, 'd': 4 }];
+    this.pan = this.dataDrag.map(() => new Animated.ValueXY());
     this.state = {
       activePage: 'interact',
       pageTab: 'setup',
@@ -305,8 +325,9 @@ class InteractScreen extends Component {
       addRumVisible: false,
       showDraggable: true,
       dropAreaValues: null,
-      pan: new Animated.ValueXY(),
-      opacity: new Animated.Value(1)
+      // pan: new Animated.ValueXY(),
+      opacity: new Animated.Value(1),
+      dropZoneValues: null,
     }
 
     this.findMeMentor = this.findMeMentor.bind(this)
@@ -315,55 +336,58 @@ class InteractScreen extends Component {
     this.renderInfoContact = this.renderInfoContact.bind(this)
   }
 
-  componentWillMount = () => {
-    this._val = { x: 0, y: 0 }
-    this.state.pan.addListener((value) => this._val = value);
+  componentWillMount = () => {  }
 
-    this.panResponder = PanResponder.create({
-      onStartShouldSetPanResponder: (e, gesture) => true,
-      onPanResponderGrant: (e, gesture) => {
-        this.state.pan.setOffset({
-          x: this._val.x,
-          y: this._val.y
-        })
-        this.state.pan.setValue({ x: 0, y: 0 })
-      },
-      onPanResponderMove: Animated.event([
-        null, { dx: this.state.pan.x, dy: this.state.pan.y }
-      ]),
+  getPanResponder(index) {
+
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: Animated.event([null, {
+        dx: this.pan[index].x,
+        dy: this.pan[index].y
+      }]),
       onPanResponderRelease: (e, gesture) => {
-        console.log("drag and drop =>", gesture);
-        this.state.pan.setOffset({ x: this.currentPanValue.x, y: this.currentPanValue.y });
-        this.state.pan.setValue({ x: 0, y: 0 });
         if (this.isDropArea(gesture)) {
-          // alert("Drop!!!")
           Animated.timing(this.state.opacity, {
             toValue: 0,
             duration: 1000
           }).start(() =>
             this.setState({
               showDraggable: false,
-              pageTab: 'info'
+              pageTab: 'info',
             })
           );
+        } else {
+          Animated.spring(
+            this.pan[index],
+            { toValue: { x: 0, y: 0 } }
+          ).start();
         }
       }
+    });
+    // }
+  }
+
+  isDropZone(gesture) {
+    var dz = this.state.dropZoneValues;
+    return gesture.moveY > dz.y && gesture.moveY < dz.y + dz.height;
+  }
+
+  setDropZoneValues(event) {
+    this.setState({
+      dropZoneValues: event.nativeEvent.layout
     });
   }
 
   isDropArea(gesture) {
-    return gesture.moveY < 500;
+    return gesture.moveY < 250;
   }
 
   componentWillUnmount = () => {
     this.state.pan.removeListener(this.panListener);
   }
-  
+
   componentDidMount = () => {
-    this.currentPanValue = { x: 0, y: 0 };
-    this.panListener = this.state.pan.addListener((value) => this.currentPanValue = value);
-
-
     const { rumslistActions, auth, register, rumsActions } = this.props
     rumslistActions.rumslistInit()
     rumslistActions.rumslistRequest(auth.access_token, auth.token_type)
@@ -383,7 +407,7 @@ class InteractScreen extends Component {
         styles: createStyleSheet(nextProps.organizationColor)
       })
     }
-    console.log('current status after delete action', nextProps.rumslist)
+    // console.log('current status after delete action', nextProps.rumslist)
     var Data = {}
     var List = []
     if (nextProps.rumslist.isGotRumsList) {
@@ -611,9 +635,39 @@ class InteractScreen extends Component {
   }
 
   //TODO
+  renderDND = locale => {
+    const { styles, List } = this.state
+   
+    if (this.state.showDraggable) {
+      return (
+        <View>
+          {this.dataDrag.map((x, index) => (
+
+            <Animated.View
+              key={index}
+              {...this.getPanResponder(index).panHandlers}
+              style={[styles.draggableContainer, this.pan[index].getLayout(), styles.circle]}>
+
+              <View style={styles.TextForDragAndDrop}>
+                <View style={styles.container}>
+                  <UserAvatar name={x['Person'].FirstName + ' ' + x['Person'].LastName} square style={styles.contactButtonPlus} />
+                </View>
+                <View style={styles.contactButtonView}>
+                  <Text style={styles.contactButtonText}>
+                    {x['Person'].FirstName + ' ' + x['Person'].LastName}
+                  </Text>
+                </View>
+              </View>
+
+            </Animated.View>
+          ))}
+        </View>
+      )
+    }
+  }
+
   renderContact = locale => {
     const { styles, List } = this.state
-
     return (
       <View style={styles.contact}>
         <Text style={styles.contactHeader}>
@@ -635,38 +689,8 @@ class InteractScreen extends Component {
             </Text>
           </View>
         </Button>
-        {List.map((x, i) => (
-          <Button
-            transparent
-            style={styles.contactRumItem}
-            key={i}
-            onPress={() => {
-              this.updateList(x)
-            }}
-          >
-            <UserAvatar name={x['Person'].FirstName + ' ' + x['Person'].LastName} square style={styles.contactButtonPlus} />
 
-            <View style={styles.contactRumItemView}>
-              <Text style={styles.contactButtonText}>
-                {x['Person'].FirstName + ' ' + x['Person'].LastName}
-              </Text>
-            </View>
-            <Button
-              transparent
-              onPress={() => {
-                this.deleteRum(locale, x)
-              }}
-            >
-              <Thumbnail
-                square
-                style={styles.noteListButtonImage}
-                source={require('../images/remove.png')}
-              />
-            </Button>
-          </Button>
-        ))}
-        {/* Sample Drag and Drop */}
-        {this.renderDraggable()}
+        {this.renderDND()}
 
         <Modal
           visible={this.state.addRumVisible}
@@ -739,23 +763,18 @@ class InteractScreen extends Component {
         </Text>
 
         {list.map((x, i) => (
-          // <Animated.View
-          //   {...this.panResponder.panHandlers}
-          // >
+
           <Button
             transparent
             style={styles.contactButton}
             key={x.id}
             onPress={() => this.contactNew(true)}
           >
-            {/* <Thumbnail square style={styles.contactButtonPlus}  > */}
             <UserAvatar name={x.name} square style={styles.contactButtonPlus} />
-            {/* </Thumbnail> */}
             <View style={styles.contactButtonView}>
               <Text style={styles.contactButtonText}>{x.name}</Text>
             </View>
           </Button>
-          // </Animated.View>
         ))}
 
         <Button
@@ -775,9 +794,6 @@ class InteractScreen extends Component {
             </Text>
           </View>
         </Button>
-        {/* <View style={{ width: "20%", alignItems: "center" }}> */}
-        {this.renderDraggable()}
-        {/* </View> */}
       </View>
     )
   }
