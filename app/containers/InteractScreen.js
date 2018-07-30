@@ -336,12 +336,14 @@ class InteractScreen extends Component {
         this.state.pan.setOffset({ x: this.currentPanValue.x, y: this.currentPanValue.y });
         this.state.pan.setValue({ x: 0, y: 0 });
         if (this.isDropArea(gesture)) {
+          // alert("Drop!!!")
           Animated.timing(this.state.opacity, {
             toValue: 0,
             duration: 1000
           }).start(() =>
             this.setState({
-              showDraggable: false
+              showDraggable: false,
+              pageTab: 'info'
             })
           );
         }
@@ -350,7 +352,7 @@ class InteractScreen extends Component {
   }
 
   isDropArea(gesture) {
-    return gesture.moveY < 200;
+    return gesture.moveY < 500;
   }
 
   componentWillUnmount = () => {
@@ -608,6 +610,7 @@ class InteractScreen extends Component {
     )
   }
 
+  //TODO
   renderContact = locale => {
     const { styles, List } = this.state
 
@@ -641,6 +644,8 @@ class InteractScreen extends Component {
               this.updateList(x)
             }}
           >
+            <UserAvatar name={x['Person'].FirstName + ' ' + x['Person'].LastName} square style={styles.contactButtonPlus} />
+
             <View style={styles.contactRumItemView}>
               <Text style={styles.contactButtonText}>
                 {x['Person'].FirstName + ' ' + x['Person'].LastName}
@@ -660,6 +665,9 @@ class InteractScreen extends Component {
             </Button>
           </Button>
         ))}
+        {/* Sample Drag and Drop */}
+        {this.renderDraggable()}
+
         <Modal
           visible={this.state.addRumVisible}
           transparent={true}
@@ -781,7 +789,7 @@ class InteractScreen extends Component {
     const { styles } = this.state
     if (this.state.showDraggable) {
       return (
-        <View >
+        <View>
           <Animated.View
             {...this.panResponder.panHandlers}
             style={[panStyle]}
@@ -797,7 +805,6 @@ class InteractScreen extends Component {
               </View>
             </View>
           </Animated.View>
-
         </View>
       );
     }
