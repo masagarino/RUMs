@@ -24,7 +24,9 @@ import {
   ImageBackground,
   Alert,
   Modal,
-  TouchableHighlight
+  TouchableHighlight,
+  PanResponder,
+  Animated
 } from 'react-native'
 import { isEmpty } from 'lodash'
 import Toast, { DURATION } from 'react-native-easy-toast'
@@ -38,8 +40,11 @@ import * as rumslistActions from '../actions/rumslistActions'
 import * as rumsActions from '../actions/rumsActions'
 import CustomFooter from '../components/CustomFooter'
 import * as uiColor from '../constants/uiColor'
+import UserAvatar from 'react-native-user-avatar';
+
 
 function createStyleSheet(organizationColor) {
+  let CIRCLE_RADIUS = 30;
   return StyleSheet.create({
     header: {
       backgroundColor: uiColor.getSecondaryColor(organizationColor)
@@ -277,6 +282,10 @@ function createStyleSheet(organizationColor) {
     viewMentorListPlusThumb: {
       width: 20,
       height: 20
+    },
+    TextForDragAndDrop: {
+      flex: 1,
+      flexDirection: 'row'
     }
   })
 }
@@ -293,7 +302,11 @@ class InteractScreen extends Component {
       List: [],
       rumslistRequest: false,
       styles: createStyleSheet(props.organizationColor),
-      addRumVisible: false
+      addRumVisible: false,
+      showDraggable: true,
+      dropAreaValues: null,
+      pan: new Animated.ValueXY(),
+      opacity: new Animated.Value(1)
     }
 
     this.findMeMentor = this.findMeMentor.bind(this)
@@ -302,8 +315,53 @@ class InteractScreen extends Component {
     this.renderInfoContact = this.renderInfoContact.bind(this)
   }
 
-  componentWillMount = () => {}
+  componentWillMount = () => {
+    this._val = { x: 0, y: 0 }
+    this.state.pan.addListener((value) => this._val = value);
+
+    this.panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: (e, gesture) => true,
+      onPanResponderGrant: (e, gesture) => {
+        this.state.pan.setOffset({
+          x: this._val.x,
+          y: this._val.y
+        })
+        this.state.pan.setValue({ x: 0, y: 0 })
+      },
+      onPanResponderMove: Animated.event([
+        null, { dx: this.state.pan.x, dy: this.state.pan.y }
+      ]),
+      onPanResponderRelease: (e, gesture) => {
+        console.log("drag and drop =>", gesture);
+        this.state.pan.setOffset({ x: this.currentPanValue.x, y: this.currentPanValue.y });
+        this.state.pan.setValue({ x: 0, y: 0 });
+        if (this.isDropArea(gesture)) {
+          Animated.timing(this.state.opacity, {
+            toValue: 0,
+            duration: 1000
+          }).start(() =>
+            this.setState({
+              showDraggable: false
+            })
+          );
+        }
+      }
+    });
+  }
+
+  isDropArea(gesture) {
+    return gesture.moveY < 200;
+  }
+
+  componentWillUnmount = () => {
+    this.state.pan.removeListener(this.panListener);
+  }
+  
   componentDidMount = () => {
+    this.currentPanValue = { x: 0, y: 0 };
+    this.panListener = this.state.pan.addListener((value) => this.currentPanValue = value);
+
+
     const { rumslistActions, auth, register, rumsActions } = this.props
     rumslistActions.rumslistInit()
     rumslistActions.rumslistRequest(auth.access_token, auth.token_type)
@@ -327,7 +385,7 @@ class InteractScreen extends Component {
     var Data = {}
     var List = []
     if (nextProps.rumslist.isGotRumsList) {
-      Object.getOwnPropertyNames(nextProps.rumslist).forEach(function(
+      Object.getOwnPropertyNames(nextProps.rumslist).forEach(function (
         val,
         idx,
         array
@@ -671,19 +729,27 @@ class InteractScreen extends Component {
         <Text style={styles.contactHeader}>
           {translate('CONTACTS', locale)}
         </Text>
+
         {list.map((x, i) => (
+          // <Animated.View
+          //   {...this.panResponder.panHandlers}
+          // >
           <Button
             transparent
             style={styles.contactButton}
             key={x.id}
             onPress={() => this.contactNew(true)}
           >
-            <Thumbnail square style={styles.contactButtonPlus} source={x.url} />
+            {/* <Thumbnail square style={styles.contactButtonPlus}  > */}
+            <UserAvatar name={x.name} square style={styles.contactButtonPlus} />
+            {/* </Thumbnail> */}
             <View style={styles.contactButtonView}>
               <Text style={styles.contactButtonText}>{x.name}</Text>
             </View>
           </Button>
+          // </Animated.View>
         ))}
+
         <Button
           transparent
           style={styles.contactButton}
@@ -701,9 +767,42 @@ class InteractScreen extends Component {
             </Text>
           </View>
         </Button>
+        {/* <View style={{ width: "20%", alignItems: "center" }}> */}
+        {this.renderDraggable()}
+        {/* </View> */}
       </View>
     )
   }
+
+  renderDraggable() {
+    const panStyle = {
+      transform: this.state.pan.getTranslateTransform()
+    }
+    const { styles } = this.state
+    if (this.state.showDraggable) {
+      return (
+        <View >
+          <Animated.View
+            {...this.panResponder.panHandlers}
+            style={[panStyle]}
+          >
+            <View style={styles.TextForDragAndDrop}>
+              <View style={styles.container}>
+                <UserAvatar name={'Marc Saga'} square style={styles.contactButtonPlus} />
+              </View>
+              <View style={styles.contactButtonView}>
+                <Text style={styles.contactButtonText}>
+                  {'Drag and Drop Me!'}
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+
+        </View>
+      );
+    }
+  }
+
 
   render() {
     const locale = 'en'
