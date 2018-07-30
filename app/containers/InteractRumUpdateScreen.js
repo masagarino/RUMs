@@ -26,12 +26,10 @@ import {
 } from 'native-base'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import * as loginFromRegistrationActions from '../actions/loginFromRegistrationActions'
 import { Actions } from 'react-native-router-flux'
 import { NavigationActions } from 'react-navigation'
 import { StyleSheet, Modal } from 'react-native'
 import { translate } from '../i18n'
-import Loading from './Loading'
 import Messages from '../components/Messages'
 import Spacer from '../components/Spacer'
 import defaultValues from '../constants/defaultValues'
@@ -172,7 +170,6 @@ class InteractRumUpdateScreen extends React.Component {
 	handleChange = (name, val) => {
 		let { person } = this.state
 		person[name] = val
-		//console.log(person[name], " = Name", name, "Val", val, "this.state", ...this.state, "person", person)
 		this.setState(
 			{
 				...this.state,
@@ -189,12 +186,9 @@ class InteractRumUpdateScreen extends React.Component {
 			showSuccessAlert: false,
 			saveRequest: false
 		})
-		// console.log('filled', this.state.person);
-		console.log(this.state.saveButtonValidate)
 		const { saveButtonValidate, person, RumID } = this.state
 		// const Value = {RumID, person};
 		if (saveButtonValidate) {
-			console.log('filled', RumID, person);
 			this.props.rumsActions.rumsUpdateRequest(
 				this.props.auth.access_token,
 				this.props.auth.token_type,
@@ -286,29 +280,21 @@ class InteractRumUpdateScreen extends React.Component {
 		var Data = {};
 		var List = {};
 		var RumID
-		// console.log("--------------->", this.props);
 		Object.getOwnPropertyNames(rums).forEach(
 			function (val, idx, array) {
-				// console.log(val + ' -> ' + JSON.stringify(rums[val]["Person"]));
 				rums[val].RumID !== undefined ? RumID = rums[val]["RumID"] : ''
 
 				if (rums[val] === undefined || typeof rums[val] == "object") {
-					// console.log(rums[val]["Person"], "<-")
 					Data = rums[val]["Person"];
 				}
 			}
 		);
-		//   console.log(">>>>>>>>>>>", Data);
 		Object.keys(Data).map((x, i) => (
-			// console.log(x, "->", Data[x])
 			Data[x] !== null && typeof Data[x] == "string" ?
-				//  List.push({ [x]: Data[x]}) 
-				// console.log([x], "->", Data[x])
 				List[x] = Data[x]
 				: ''
 
 		))
-		console.log(">>>>>>>>", List, "RumID", RumID)
 		this.setState({
 			person: List,
 			RumID
@@ -336,7 +322,6 @@ class InteractRumUpdateScreen extends React.Component {
 			saveButtonValidate,
 			person
 		} = this.state
-		// console.log(">>>>>>>>>>>>>>>>>>> Person", person.City)
 		return (
 			<Container>
 				<Header style={styles.header}>

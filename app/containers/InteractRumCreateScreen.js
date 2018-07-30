@@ -169,7 +169,6 @@ class InteractRumCreateScreen extends React.Component {
 	handleChange = (name, val) => {
 		let person = this.state.person
 		person[name] = val
-		console.log("state", this.state, ">>>", person)
 		this.setState(
 			{
 				...this.state,
@@ -186,10 +185,9 @@ class InteractRumCreateScreen extends React.Component {
 			showSuccessAlert: false,
 			saveRequest: false
 		})
-		console.log(this.state.saveButtonValidate)
+		
 		const { saveButtonValidate } = this.state
 		if (saveButtonValidate) {
-			// console.log('filled', person, this.props.auth.access_token,"============================", this.props.auth.token_type);
 			this.props.rumsActions.rumsCreateRequest(
 				this.props.auth.access_token,
 				this.props.auth.token_type,

@@ -74,7 +74,7 @@ export default function rums(state = initialState, action) {
         value: action.value,
         RumID: action.ID,
       });
-    case types.RUMS_UPDATE.SUCCESS:
+    case types.RUMS_DELETE.SUCCESS:
       return Object.assign({}, state, {
         isFetching: false,
         done: true,

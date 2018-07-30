@@ -19,6 +19,7 @@ export function rumsCreateInit() {
 }
 
 export function rumsCreateSuccess(payload) {
+  Actions.push('interact')
   return {
     type: types.RUMS_CREATE.SUCCESS,
     ...payload
@@ -50,6 +51,7 @@ export function rumsUpdateInit(value) {
 }
 
 export function rumsUpdateSuccess(payload) {
+  Actions.push('interact')
   return {
     type: types.RUMS_UPDATE.SUCCESS,
     ...payload

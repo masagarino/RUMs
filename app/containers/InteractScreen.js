@@ -26,6 +26,7 @@ import {
   Modal,
   TouchableHighlight
 } from 'react-native'
+import { isEmpty } from 'lodash'
 import Toast, { DURATION } from 'react-native-easy-toast'
 import NavigationBar from 'react-native-navbar'
 import { NavigationActions } from 'react-navigation'
@@ -141,6 +142,13 @@ function createStyleSheet(organizationColor) {
       padding: 0,
       marginBottom: 9
     },
+    contactRumItem: {
+      width: '100%',
+      padding: 0,
+      marginBottom: 9,
+      borderBottomWidth: 1,
+      borderColor: '#C8C7CC'
+    },
     contactButtonPlus: {
       width: 40,
       height: 40
@@ -148,6 +156,11 @@ function createStyleSheet(organizationColor) {
     contactButtonView: {
       borderBottomWidth: 1,
       borderColor: '#C8C7CC',
+      height: 40,
+      flex: 1,
+      marginLeft: 8
+    },
+    contactRumItemView: {
       height: 40,
       flex: 1,
       marginLeft: 8
@@ -211,6 +224,18 @@ function createStyleSheet(organizationColor) {
     mentorInfoTextSmall: {
       color: '#A1A1A1',
       fontSize: 16
+    },
+    noteListButtonBottom: {
+      width: 20,
+      height: 20,
+      alignItems: 'flex-end',
+      right: 0
+    },
+    noteListButtonImage: {
+      width: 20,
+      height: 20,
+      borderBottomWidth: 1,
+      borderColor: '#C8C7CC'
     },
     viewMentorList: {
       paddingTop: 9,
@@ -277,11 +302,8 @@ class InteractScreen extends Component {
     this.renderInfoContact = this.renderInfoContact.bind(this)
   }
 
-  componentWillMount = () => {
-
-  }
+  componentWillMount = () => {}
   componentDidMount = () => {
-
     const { rumslistActions, auth, register, rumsActions } = this.props
     rumslistActions.rumslistInit()
     rumslistActions.rumslistRequest(auth.access_token, auth.token_type)
@@ -292,30 +314,6 @@ class InteractScreen extends Component {
     ) {
       Actions.push('introduceInteract')
     }
-    // console.log("rumsActions ==============================", rumsActions.rumsUpdateInit());
-
-    const { rumslist } = this.props;
-    var Data = {};
-    var List = [];
-
-
-    Object.getOwnPropertyNames(rumslist).forEach(
-      function (val, idx, array) {
-        // console.log(val + ' -> ' + JSON.stringify(rumslist[val].Data));
-        if (rumslist[val].Data) {
-          // console.log(rumslist[val].Data);
-          Data = rumslist[val].Data;
-        }
-      }
-    );
-    Data.map((x, i) => (
-      //  console.log("=================", x.RumID)
-      List.push({ RumID: x.RumID, Person: x.Person })
-    ))
-    // console.log("List----------------->", List[Person])
-    this.setState({
-      List
-    })
   }
 
   componentWillReceiveProps = nextProps => {
@@ -323,6 +321,24 @@ class InteractScreen extends Component {
       this.setState({
         rumslistRequest: false,
         styles: createStyleSheet(nextProps.organizationColor)
+      })
+    }
+    console.log('current status after delete action', nextProps.rumslist)
+    var Data = {}
+    var List = []
+    if (nextProps.rumslist.isGotRumsList) {
+      Object.getOwnPropertyNames(nextProps.rumslist).forEach(function(
+        val,
+        idx,
+        array
+      ) {
+        if (nextProps.rumslist[val].Data) {
+          Data = nextProps.rumslist[val].Data
+        }
+      })
+      Data.map((x, i) => List.push({ RumID: x.RumID, Person: x.Person }))
+      this.setState({
+        List: List
       })
     }
   }
@@ -388,8 +404,8 @@ class InteractScreen extends Component {
     })
   }
 
-  updateList = (data) => {
-    const { rumsActions } = this.props;
+  updateList = data => {
+    const { rumsActions } = this.props
     rumsActions.rumsUpdateInit(data)
     // this.contactNew(false)
     Actions.push('Updaterum')
@@ -398,6 +414,30 @@ class InteractScreen extends Component {
   addRumManuel = () => {
     this.contactNew(false)
     Actions.push('createrum')
+  }
+
+  deleteRum = (locale, data) => {
+    Alert.alert(
+      translate('Delete Rum', locale),
+      translate('Do you want to delete Rum item? YES or NO.', locale),
+      [
+        {
+          text: translate('NO', locale),
+          style: 'cancel'
+        },
+        {
+          text: translate('YES', locale),
+          onPress: () =>
+            this.props.rumsActions.rumsDeleteRequest(
+              this.props.auth.access_token,
+              this.props.auth.token_type,
+              data.Person,
+              data.RumID
+            )
+        }
+      ],
+      { cancelable: false }
+    )
   }
 
   renderView = locale => {
@@ -511,38 +551,13 @@ class InteractScreen extends Component {
   }
 
   renderContact = locale => {
-    const { styles, List } = this.state;
-    // List.map((x, i) => (
-    //   console.log(" =============== >",x["Person"].LastName)
-    // ))
+    const { styles, List } = this.state
 
     return (
       <View style={styles.contact}>
         <Text style={styles.contactHeader}>
           {translate('CONTACTS', locale)}
         </Text>
-        {List.map((x, i) => (
-          <Button
-            transparent
-            style={styles.contactButton}
-            key={i}
-            onPress={() => { this.updateList(x) }}
-          >
-            <Thumbnail
-              square
-              style={styles.contactButtonPlus}
-              source={require('../images/contact_button.jpg')}
-            />
-            <View style={styles.contactButtonView}>
-              <Text style={styles.contactButtonText}>
-                {
-                   x["Person"].FirstName + " " + x["Person"].LastName
-                }
-              </Text>
-            </View>
-          </Button>
-        ))
-        }
         <Button
           transparent
           style={styles.contactButton}
@@ -559,11 +574,40 @@ class InteractScreen extends Component {
             </Text>
           </View>
         </Button>
-
+        {List.map((x, i) => (
+          <Button
+            transparent
+            style={styles.contactRumItem}
+            key={i}
+            onPress={() => {
+              this.updateList(x)
+            }}
+          >
+            <View style={styles.contactRumItemView}>
+              <Text style={styles.contactButtonText}>
+                {x['Person'].FirstName + ' ' + x['Person'].LastName}
+              </Text>
+            </View>
+            <Button
+              transparent
+              onPress={() => {
+                this.deleteRum(locale, x)
+              }}
+            >
+              <Thumbnail
+                square
+                style={styles.noteListButtonImage}
+                source={require('../images/remove.png')}
+              />
+            </Button>
+          </Button>
+        ))}
         <Modal
           visible={this.state.addRumVisible}
           transparent={true}
-          onReqestClose={() => { this.addRumManuel(false) }}
+          onReqestClose={() => {
+            this.addRumManuel(false)
+          }}
         >
           <View
             style={{
@@ -573,7 +617,6 @@ class InteractScreen extends Component {
             }}
           >
             <View style={styles.alertMainView}>
-
               <Text style={styles.alertTitle}>
                 {translate('Add New Rum', locale)}
               </Text>
@@ -628,6 +671,19 @@ class InteractScreen extends Component {
         <Text style={styles.contactHeader}>
           {translate('CONTACTS', locale)}
         </Text>
+        {list.map((x, i) => (
+          <Button
+            transparent
+            style={styles.contactButton}
+            key={x.id}
+            onPress={() => this.contactNew(true)}
+          >
+            <Thumbnail square style={styles.contactButtonPlus} source={x.url} />
+            <View style={styles.contactButtonView}>
+              <Text style={styles.contactButtonText}>{x.name}</Text>
+            </View>
+          </Button>
+        ))}
         <Button
           transparent
           style={styles.contactButton}
@@ -645,24 +701,6 @@ class InteractScreen extends Component {
             </Text>
           </View>
         </Button>
-        {list.map((x, i) => (
-          <Button
-            transparent
-            style={styles.contactButton}
-            key={x.id}
-            onPress={() => this.contactNew(true)}
-          >
-            <Thumbnail square style={styles.contactButtonPlus} source={x.url} />
-            <View style={styles.contactButtonView}>
-              <Text style={styles.contactButtonText}>{x.name}</Text>
-            </View>
-          </Button>
-        ))}
-        <Modal isVisible={this.state.rumAddVisible}>
-          <View style={{ flex: 1 }}>
-            <Text>I am the modal content!</Text>
-          </View>
-        </Modal>
       </View>
     )
   }
@@ -724,4 +762,3 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(InteractScreen)
-
