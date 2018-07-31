@@ -44,7 +44,6 @@ import UserAvatar from 'react-native-user-avatar';
 
 
 function createStyleSheet(organizationColor) {
-  let CIRCLE_RADIUS = 30;
   return StyleSheet.create({
     header: {
       backgroundColor: uiColor.getSecondaryColor(organizationColor)
@@ -290,30 +289,11 @@ function createStyleSheet(organizationColor) {
   })
 }
 
-function getData(value) {
-
-  var Dataprops = [];
-  var Listprops = [];
-
-  Object.getOwnPropertyNames(value).forEach(
-    function (val, idx, array) {
-
-      if (value[val] === undefined || typeof value[val] == "object") {
-        Dataprops.push(value[val]["Person"]);
-      }
-    }
-  );
-  Dataprops.map((x, i) => Listprops.push({ Person: x }))
-  return Listprops
-}
-
 class InteractScreen extends Component {
   constructor(props) {
     super(props)
 
-    this.dataDrag = getData(props.rumslist.value.Data);
-   // this.dataDrag = [{ "a": 1, 'b': 2, 'c': 3, 'd': 4 }];
-    this.pan = this.dataDrag.map(() => new Animated.ValueXY());
+
     this.state = {
       activePage: 'interact',
       pageTab: 'setup',
@@ -323,11 +303,6 @@ class InteractScreen extends Component {
       rumslistRequest: false,
       styles: createStyleSheet(props.organizationColor),
       addRumVisible: false,
-      showDraggable: true,
-      dropAreaValues: null,
-      // pan: new Animated.ValueXY(),
-      opacity: new Animated.Value(1),
-      dropZoneValues: null,
     }
 
     this.findMeMentor = this.findMeMentor.bind(this)
@@ -336,56 +311,9 @@ class InteractScreen extends Component {
     this.renderInfoContact = this.renderInfoContact.bind(this)
   }
 
-  componentWillMount = () => {  }
+  componentWillMount = () => { }
 
-  getPanResponder(index) {
-
-    return PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: Animated.event([null, {
-        dx: this.pan[index].x,
-        dy: this.pan[index].y
-      }]),
-      onPanResponderRelease: (e, gesture) => {
-        if (this.isDropArea(gesture)) {
-          Animated.timing(this.state.opacity, {
-            toValue: 0,
-            duration: 1000
-          }).start(() =>
-            this.setState({
-              showDraggable: false,
-              pageTab: 'info',
-            })
-          );
-        } else {
-          Animated.spring(
-            this.pan[index],
-            { toValue: { x: 0, y: 0 } }
-          ).start();
-        }
-      }
-    });
-    // }
-  }
-
-  isDropZone(gesture) {
-    var dz = this.state.dropZoneValues;
-    return gesture.moveY > dz.y && gesture.moveY < dz.y + dz.height;
-  }
-
-  setDropZoneValues(event) {
-    this.setState({
-      dropZoneValues: event.nativeEvent.layout
-    });
-  }
-
-  isDropArea(gesture) {
-    return gesture.moveY < 250;
-  }
-
-  componentWillUnmount = () => {
-    this.state.pan.removeListener(this.panListener);
-  }
+  componentWillUnmount = () => { }
 
   componentDidMount = () => {
     const { rumslistActions, auth, register, rumsActions } = this.props
@@ -634,37 +562,7 @@ class InteractScreen extends Component {
     )
   }
 
-  //TODO
-  renderDND = locale => {
-    const { styles, List } = this.state
-   
-    if (this.state.showDraggable) {
-      return (
-        <View>
-          {this.dataDrag.map((x, index) => (
 
-            <Animated.View
-              key={index}
-              {...this.getPanResponder(index).panHandlers}
-              style={[styles.draggableContainer, this.pan[index].getLayout(), styles.circle]}>
-
-              <View style={styles.TextForDragAndDrop}>
-                <View style={styles.container}>
-                  <UserAvatar name={x['Person'].FirstName + ' ' + x['Person'].LastName} square style={styles.contactButtonPlus} />
-                </View>
-                <View style={styles.contactButtonView}>
-                  <Text style={styles.contactButtonText}>
-                    {x['Person'].FirstName + ' ' + x['Person'].LastName}
-                  </Text>
-                </View>
-              </View>
-
-            </Animated.View>
-          ))}
-        </View>
-      )
-    }
-  }
 
   renderContact = locale => {
     const { styles, List } = this.state
@@ -689,8 +587,39 @@ class InteractScreen extends Component {
             </Text>
           </View>
         </Button>
+        {List.map((x, i) => (
+          <Button
+            transparent
+            key={i}
+            onPress={() => {
+              this.updateList(x)
+            }}
+          >
 
-        {this.renderDND()}
+            <UserAvatar name={x['Person'].FirstName + ' ' + x['Person'].LastName} square style={styles.contactButtonPlus} />
+
+
+            <View style={styles.contactButtonView}>
+              <Text style={styles.contactButtonText}>
+                {x['Person'].FirstName + ' ' + x['Person'].LastName}
+              </Text>
+            </View>
+
+            <Button
+              transparent
+              onPress={() => {
+                this.deleteRum(locale, x)
+              }}
+            >
+              <Thumbnail
+                square
+                style={styles.noteListButtonImage}
+                source={require('../images/remove.png')}
+              />
+            </Button>
+          </Button>
+        ))
+        }
 
         <Modal
           visible={this.state.addRumVisible}
@@ -797,35 +726,6 @@ class InteractScreen extends Component {
       </View>
     )
   }
-
-  renderDraggable() {
-    const panStyle = {
-      transform: this.state.pan.getTranslateTransform()
-    }
-    const { styles } = this.state
-    if (this.state.showDraggable) {
-      return (
-        <View>
-          <Animated.View
-            {...this.panResponder.panHandlers}
-            style={[panStyle]}
-          >
-            <View style={styles.TextForDragAndDrop}>
-              <View style={styles.container}>
-                <UserAvatar name={'Marc Saga'} square style={styles.contactButtonPlus} />
-              </View>
-              <View style={styles.contactButtonView}>
-                <Text style={styles.contactButtonText}>
-                  {'Drag and Drop Me!'}
-                </Text>
-              </View>
-            </View>
-          </Animated.View>
-        </View>
-      );
-    }
-  }
-
 
   render() {
     const locale = 'en'
